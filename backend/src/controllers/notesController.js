@@ -1,4 +1,4 @@
-import { Note } from "../../database/models/index.js";
+import { Note } from "../../database/models/index.mjs";
 // import { emitNoteCreated } from "../sockets/notesSocket";
 
 const getAll = async (req, res, next) => {
