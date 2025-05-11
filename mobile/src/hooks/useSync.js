@@ -7,6 +7,7 @@ import {
   getAllNotes,
   saveNotes,
 } from "../storage/notesStore";
+import { triggerLocalNotification } from "../notifications/notifications";
 
 const SOCKET_URL = "https://my-api-to-be-used-here.com";
 
@@ -23,6 +24,11 @@ export function useSync() {
         if (!notes.find((n) => n.id === serverNote.id)) {
           notes.unshift(serverNote);
           await saveNotes(notes);
+          // Trigger local notification
+          triggerLocalNotification(
+            "Note Synced",
+            "Your note has been synced to the server."
+          );
         }
       })();
     });
