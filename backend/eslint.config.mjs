@@ -16,6 +16,7 @@ export default defineConfig([
       eqeqeq: ["error", "always"],
       "no-duplicate-imports": "error",
     },
+    ignores: ["**/database/**", "**/node_modules/**", "**/config/**"],
   },
   {
     files: ["**/*.{js,mjs,cjs}"],
