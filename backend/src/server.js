@@ -5,7 +5,7 @@ import http from "http";
 // import { Sequelize } from "sequelize";
 // import dbConfigs from "../config/database.js";
 import app from "./app.js";
-import { initSocket } from "../config/socket.js";
+import initSocket from "../config/socket.js";
 import { handleConnections } from "./sockets/notesSocket.js";
 // import { Note } from "./models/index.js";
 
