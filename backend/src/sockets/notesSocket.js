@@ -1,4 +1,4 @@
-export const handleConnections = (io) => {
+const handleConnections = (io) => {
   io.on("connection", (socket) => {
     console.log(`Client connected [id=${socket.id}]`);
     socket.on("disconnect", () => {
@@ -6,12 +6,8 @@ export const handleConnections = (io) => {
     });
   });
 };
-
-export const emitNoteCreated = (io, note) => {
+const emitNoteCreated = (io, note) => {
   io.emit("note:created", note);
 };
 
-export default {
-  handleConnections,
-  emitNoteCreated,
-};
+export { handleConnections, emitNoteCreated };
