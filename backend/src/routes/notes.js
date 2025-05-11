@@ -1,5 +1,9 @@
 import { Router } from "express";
-import { getAll, createNote } from "../controllers/notesController.js";
+import {
+  getAll,
+  createNote,
+  batchCreateNotes,
+} from "../controllers/notesController.js";
 import Joi from "joi";
 import validate from "../middleware/validate.js";
 
@@ -10,6 +14,9 @@ const noteSchema = Joi.object({
   text: Joi.string().required(),
 });
 
-router.get("/", getAll).post("/", validate(noteSchema), createNote);
+router
+  .get("/", getAll)
+  .post("/", validate(noteSchema), createNote)
+  .post("/batch", validate(Joi.array().items(noteSchema)), batchCreateNotes);
 
 export default router;

@@ -28,4 +28,26 @@ const createNote = async (req, res, next) => {
   }
 };
 
-export { getAll, createNote };
+const batchCreateNotes = async (req, res, next) => {
+  try {
+    const notesArray = req.body;
+    const result = [];
+    for (const data of notesArray) {
+      const [note, created] = await Note.findOrCreate({
+        where: { id: data.id },
+        defaults: { text: data.text },
+      });
+      if (!created && note.text !== data.text) {
+        note.text = data.text;
+        await note.save();
+      }
+      emitNoteCreated(req.app.locals.io, note);
+      result.push(note);
+    }
+    res.status(201).json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export { getAll, createNote, batchCreateNotes };
