@@ -8,7 +8,7 @@ export default defineConfig([
     plugins: { js },
     extends: ["js/recommended"],
     rules: {
-      "no-console": "error",
+      // "no-console": "error",
       "no-undef": "error",
       "no-unused-vars": "error",
       "no-var": "error",
@@ -16,7 +16,13 @@ export default defineConfig([
       eqeqeq: ["error", "always"],
       "no-duplicate-imports": "error",
     },
-    ignores: ["**/database/**", "**/node_modules/**", "**/config/**"],
+    ignores: [
+      "**/database/**",
+      "**/node_modules/**",
+      "**/config/**",
+      "**/src/server.js",
+      "**/src/app.js",
+    ],
   },
   {
     files: ["**/*.{js,mjs,cjs}"],

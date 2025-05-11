@@ -1,10 +1,10 @@
-const pg = require("pg");
-
-require("dotenv/config");
+import pg from "pg";
+import dotenv from "dotenv";
+dotenv.config();
 
 console.log(process.env.POSTGRES_DB, "process.env.POSTGRES_DB");
 
-module.exports = {
+export default {
   development: {
     dialect: "postgres",
     username: process.env.POSTGRES_USER,
@@ -33,14 +33,13 @@ module.exports = {
     database: process.env.POSTGRES_DATABASE,
     host: process.env.POSTGRES_HOST,
     port: process.env.PROD_DB_PORT,
-    dialectModule: pg, // added this line
-    // url: process.env.POSTGRES_URL,
+    dialectModule: pg,
     dialect: "postgres",
     dialectOptions: {
       bigNumberStrings: true,
       ssl: {
         require: true,
-        rejectUnauthorized: false, // Disable validation of SSL certificates
+        rejectUnauthorized: false,
       },
     },
   },
