@@ -1,28 +1,44 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NetworkProvider } from "./contexts/NetworkContext";
-import { useSync } from "./hooks/useSync";
+import { SyncProvider } from "./hooks/useSync";
 import NotesListScreen from "./screens/NotesListScreen";
 import CreateNoteScreen from "./screens/CreateNoteScreen";
-import { registerForPushNotificationsAsync } from "./notifications/notifications";
+import OfflineBanner from "./components/OfflineBanner";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { View, StyleSheet } from "react-native";
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
-export default function App() {
-  useSync();
-  useEffect(() => {
-    registerForPushNotificationsAsync();
-  }, []);
-
+function AppContent() {
   return (
-    <NetworkProvider>
-      <NavigationContainer>
-        <Stack.Navigator>
-          <Stack.Screen name="Notes" component={NotesListScreen} />
-          <Stack.Screen name="Create" component={CreateNoteScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </NetworkProvider>
+    <Stack.Navigator>
+      <Stack.Screen name="Notes" component={NotesListScreen} />
+      <Stack.Screen name="Create" component={CreateNoteScreen} />
+    </Stack.Navigator>
   );
 }
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <NetworkProvider>
+        <SyncProvider>
+          <View style={styles.container}>
+            <OfflineBanner />
+            <NavigationContainer>
+              <AppContent />
+            </NavigationContainer>
+          </View>
+        </SyncProvider>
+      </NetworkProvider>
+    </SafeAreaProvider>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
