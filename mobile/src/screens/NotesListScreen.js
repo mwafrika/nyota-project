@@ -23,7 +23,7 @@ export default function NotesListScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       loadNotes();
-      return () => {}; 
+      return () => {};
     }, [])
   );
 

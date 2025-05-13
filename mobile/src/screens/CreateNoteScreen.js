@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import { View, TextInput, Button, StyleSheet } from "react-native";
-import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4 } from "../utils/idGenerator";
 import { getAllNotes, saveNotes, enqueueNote } from "../storage/notesStore";
 import { NetworkContext } from "../contexts/NetworkContext";
 import { useSyncStatus } from "../hooks/useSync";
