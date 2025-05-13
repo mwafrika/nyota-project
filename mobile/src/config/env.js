@@ -1,8 +1,8 @@
-export const API_URL = "http://192.168.1.254:3000";
+export const API_URL = "http://10.0.2.2:3000";
 
 export const FORCE_OFFLINE_MODE = false;
 
-export const LOCALHOST_URL = "http://10.0.2.2:3000";
+export const LOCALHOST_URL = "http://192.168.1.68:3000";
 
 export const APP_NAME = "Nyota Notes";
 

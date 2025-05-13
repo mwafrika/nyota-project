@@ -26,7 +26,10 @@
     "react-native-sqlite-storage": "^6.0.1",
     "react-navigation": "^5.0.0",
     "socket.io-client": "^4.8.1",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "react-dom": "19.0.0",
+    "react-native-web": "^0.20.0",
+    "@expo/metro-runtime": "~5.0.4"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

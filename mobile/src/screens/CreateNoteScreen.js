@@ -25,6 +25,7 @@ export default function CreateNoteScreen({ navigation }) {
       await saveNotes(notes);
       console.log("Note saved locally:", newNote.id);
 
+
       if (isConnected && socketConnected) {
         const socket = getSocketInstance();
         if (socket && socket.connected) {

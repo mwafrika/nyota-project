@@ -56,7 +56,7 @@ const emitNoteCreated = (io, note) => {
     return;
   }
   console.log("Emitting note:created event:", note.id);
-  io.emit("note:created", note);
+  io.emit("note:create", note); // note:created
 };
 
 export { handleConnections, emitNoteCreated };

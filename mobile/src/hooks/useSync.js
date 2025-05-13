@@ -192,10 +192,10 @@ export function SyncProvider({ children }) {
 // Function to get socket URL
 export const getSocketUrl = () => {
   // For emulators
-  if (Platform.OS === "android" && !__DEV__) {
+  if (!__DEV__) {
     return API_URL; // for production
   } else if (Platform.OS === "android") {
-    return LOCALHOST_URL; // for Android emulator
+    return LOCALHOST_URL; // for Android emulator LOCALHOST_URL
   } else {
     return API_URL; // for other platforms
   }
