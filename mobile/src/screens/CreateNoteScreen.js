@@ -12,38 +12,37 @@ export default function CreateNoteScreen({ navigation }) {
 
   async function save() {
     try {
-      // Create new note
       const newNote = {
         id: uuidv4(),
         text,
         synced: false,
         createdAt: Date.now(),
+        syncedAt: null,
       };
 
       const notes = await getAllNotes();
       notes.unshift(newNote);
       await saveNotes(notes);
       console.log("Note saved locally:", newNote.id);
+      const socket = getSocketInstance();
 
-
-      if (isConnected && socketConnected) {
-        const socket = getSocketInstance();
-        if (socket && socket.connected) {
+      if (isConnected && socketConnected && socket && socket.connected) {
+        try {
           socket.emit("note:create", newNote);
           console.log("Note emitted for immediate sync:", newNote.id);
-        } else {
+        } catch (error) {
+          console.error("Socket emit error:", error);
           await enqueueNote(newNote);
-          console.log(
-            "Socket unavailable, added note to sync queue:",
-            newNote.id
-          );
+          console.log("Error during sync, added to queue:", newNote.id);
         }
       } else {
         await enqueueNote(newNote);
-        console.log("Offline - added note to sync queue:", newNote.id);
+        console.log(
+          "Network/socket not available, queued for later sync:",
+          newNote.id
+        );
       }
 
-      // Navigate back to the notes list
       navigation.goBack();
     } catch (error) {
       console.error("Error saving note:", error);

@@ -14,12 +14,10 @@ export default function NotesListScreen({ navigation }) {
   const [notes, setNotes] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Load notes on initial render
   useEffect(() => {
     loadNotes();
   }, []);
 
-  // Reload notes when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       loadNotes();
