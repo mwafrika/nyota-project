@@ -6,6 +6,7 @@ import {
   Button,
   StyleSheet,
   TouchableOpacity,
+  SafeAreaView,
 } from "react-native";
 import { getAllNotes } from "../storage/notesStore";
 import { useFocusEffect } from "@react-navigation/native";
@@ -13,6 +14,19 @@ import { useFocusEffect } from "@react-navigation/native";
 export default function NotesListScreen({ navigation }) {
   const [notes, setNotes] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      title: "All Notes",
+      headerStyle: {
+        backgroundColor: "#2196F3",
+      },
+      headerTintColor: "#fff",
+      headerTitleStyle: {
+        fontWeight: "bold",
+      },
+    });
+  }, [navigation]);
 
   useEffect(() => {
     loadNotes();
@@ -64,7 +78,13 @@ export default function NotesListScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>My Notes</Text>
+        <Text style={styles.subHeaderText}>
+          {notes.length} {notes.length === 1 ? "note" : "notes"} available
+        </Text>
+      </View>
       <FlatList
         data={notes}
         keyExtractor={(n) => n.id}
@@ -86,7 +106,7 @@ export default function NotesListScreen({ navigation }) {
       >
         <Text style={styles.addButtonText}>+</Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -94,6 +114,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
+  },
+  header: {
+    padding: 16,
+    backgroundColor: "#4CAF50",
+    borderBottomLeftRadius: 15,
+    borderBottomRightRadius: 15,
+    marginBottom: 10,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#fff",
+  },
+  subHeaderText: {
+    fontSize: 14,
+    color: "rgba(255,255,255,0.8)",
+    marginTop: 4,
   },
   listContent: {
     padding: 10,
