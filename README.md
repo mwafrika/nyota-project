@@ -99,6 +99,26 @@ This project consists of two main components:
 
 5. Follow Expo instructions to run on a device or emulator
 
+
+6. To connect with the Expo Go app on your mobile device:
+   - Make sure your mobile device is on the same network as your development machine
+   - For Android: Use `exp://<YOUR_LOCAL_IP>:3000` in the Expo Go app
+   - For iOS: Scan the QR code from the terminal or Expo Dev Tools
+
+7. Screenshots
+
+![alt text](./mobile/assets/splashIcon.jpg)
+![alt text](./mobile/assets/list.jpg)
+
+![alt text](./mobile/assets/create.jpg)
+
+![alt text](./mobile/assets/edit.jpg)
+
+![alt text](./mobile/assets/delete.jpg)
+
+
+
+
 ## Project Structure
 
 ### Mobile App
