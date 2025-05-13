@@ -26,8 +26,6 @@ export default function NotesListScreen({ navigation }) {
   );
 
   const loadNotes = async () => {
-    if (!isMounted.current) return;
-
     try {
       setRefreshing(true);
       const notesData = await getAllNotes();
@@ -138,7 +136,7 @@ const styles = StyleSheet.create({
   addButton: {
     position: "absolute",
     right: 20,
-    bottom: 20,
+    bottom: 60,
     width: 60,
     height: 60,
     borderRadius: 30,
