@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useContext } from "react";
 import {
   View,
   FlatList,
@@ -7,13 +7,18 @@ import {
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
+  Alert,
 } from "react-native";
-import { getAllNotes } from "../storage/notesStore";
+import { getAllNotes, saveNotes } from "../storage/notesStore";
 import { useFocusEffect } from "@react-navigation/native";
+import { NetworkContext } from "../contexts/NetworkContext";
+import { useSyncStatus } from "../hooks/useSync";
 
 export default function NotesListScreen({ navigation }) {
   const [notes, setNotes] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const { isConnected } = useContext(NetworkContext);
+  const { socketConnected, getSocketInstance } = useSyncStatus();
 
   React.useLayoutEffect(() => {
     navigation.setOptions({
@@ -27,6 +32,108 @@ export default function NotesListScreen({ navigation }) {
       },
     });
   }, [navigation]);
+
+  // Set up listeners for real-time updates
+  useEffect(() => {
+    const socket = getSocketInstance();
+    if (!socket) return;
+
+    // Listen for updates from other devices
+    const handleNoteUpdated = (updatedNote) => {
+      console.log(
+        "NotesListScreen received note:updated event:",
+        updatedNote.id
+      );
+      setNotes((currentNotes) => {
+        // Find if we already have this note
+        const noteIndex = currentNotes.findIndex(
+          (note) => note.id === updatedNote.id
+        );
+
+        if (noteIndex !== -1) {
+          // Create a new array with the updated note
+          const newNotes = [...currentNotes];
+          newNotes[noteIndex] = { ...updatedNote, synced: true };
+          return newNotes;
+        } else {
+          // Add it to the beginning of the array
+          return [{ ...updatedNote, synced: true }, ...currentNotes];
+        }
+      });
+    };
+
+    // Listen for new notes from other devices
+    const handleNoteCreated = (newNote) => {
+      console.log("NotesListScreen received note:created event:", newNote.id);
+      setNotes((currentNotes) => {
+        // Check if we already have this note
+        if (!currentNotes.some((note) => note.id === newNote.id)) {
+          return [{ ...newNote, synced: true }, ...currentNotes];
+        }
+        return currentNotes;
+      });
+    };
+
+    // Listen for acknowledgments to update sync status
+    const handleNoteAck = (data) => {
+      console.log("NotesListScreen received note:ack event:", data.id);
+      setNotes((currentNotes) => {
+        return currentNotes.map((note) => {
+          if (note.id === data.id) {
+            return { ...note, synced: true, syncedAt: Date.now() };
+          }
+          return note;
+        });
+      });
+    };
+
+    // Listen for update acknowledgments
+    const handleUpdateAck = (data) => {
+      console.log("NotesListScreen received note:update_ack event:", data.id);
+      setNotes((currentNotes) => {
+        return currentNotes.map((note) => {
+          if (note.id === data.id) {
+            return { ...note, synced: true, syncedAt: Date.now() };
+          }
+          return note;
+        });
+      });
+    };
+
+    // Listen for note deletions from other devices
+    const handleNoteDeleted = (data) => {
+      console.log("NotesListScreen received note:deleted event:", data.id);
+      setNotes((currentNotes) => {
+        return currentNotes.filter((note) => note.id !== data.id);
+      });
+    };
+
+    // Listen for delete acknowledgments
+    const handleDeleteAck = (data) => {
+      console.log("NotesListScreen received note:delete_ack event:", data.id);
+      setNotes((currentNotes) => {
+        return currentNotes.filter((note) => note.id !== data.id);
+      });
+    };
+
+    // Set up listeners
+    socket.on("note:updated", handleNoteUpdated);
+    socket.on("note:created", handleNoteCreated);
+    socket.on("note:ack", handleNoteAck);
+    socket.on("note:update_ack", handleUpdateAck);
+    socket.on("note:deleted", handleNoteDeleted);
+    socket.on("note:delete_ack", handleDeleteAck);
+
+    // Clean up listeners when component unmounts
+    return () => {
+      socket.off("note:updated", handleNoteUpdated);
+      socket.off("note:created", handleNoteCreated);
+      socket.off("note:ack", handleNoteAck);
+      socket.off("note:update_ack", handleUpdateAck);
+      socket.off("note:deleted", handleNoteDeleted);
+      socket.off("note:delete_ack", handleDeleteAck);
+    };
+  }, [getSocketInstance]);
 
   useEffect(() => {
     loadNotes();
@@ -51,11 +158,79 @@ export default function NotesListScreen({ navigation }) {
     }
   };
 
+  const handleEditNote = (note) => {
+    navigation.navigate("Edit", { note });
+  };
+
+  const handleDeleteNote = async (note) => {
+    try {
+      // Remove from local state first for immediate UI feedback
+      setNotes((currentNotes) => currentNotes.filter((n) => n.id !== note.id));
+
+      // Then update storage
+      const allNotes = await getAllNotes();
+      const updatedNotes = allNotes.filter((n) => n.id !== note.id);
+      await saveNotes(updatedNotes);
+
+      // If connected, send delete request to server
+      const socket = getSocketInstance();
+      if (socket && socket.connected) {
+        socket.emit("note:delete", { id: note.id });
+        console.log("Emitted note:delete for note:", note.id);
+      }
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      // Reload notes in case of error
+      loadNotes();
+    }
+  };
+
+  const handleLongPress = (note) => {
+    Alert.alert("Note Options", "What would you like to do with this note?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Edit",
+        onPress: () => handleEditNote(note),
+      },
+      {
+        text: "Delete",
+        onPress: () => confirmDelete(note),
+        style: "destructive",
+      },
+    ]);
+  };
+
+  const confirmDelete = (note) => {
+    Alert.alert(
+      "Delete Note",
+      "Are you sure you want to delete this note? This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          onPress: () => handleDeleteNote(note),
+          style: "destructive",
+        },
+      ]
+    );
+  };
+
   function renderItem({ item }) {
     const createdDate = new Date(item.createdAt).toLocaleString();
 
     return (
-      <TouchableOpacity style={styles.noteItem} activeOpacity={0.7}>
+      <TouchableOpacity
+        style={styles.noteItem}
+        activeOpacity={0.7}
+        onPress={() => handleEditNote(item)}
+        onLongPress={() => handleLongPress(item)}
+      >
         <View style={styles.noteContent}>
           <Text style={styles.noteText} numberOfLines={3} ellipsizeMode="tail">
             {item.text}

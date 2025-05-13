@@ -36,7 +36,7 @@ export function NetworkProvider({ children }) {
       }
     })();
 
-    // If we're forcing offline mode, don't bother checking network status
+    // If we're forcing offline mode, no need to check network status
     if (FORCE_OFFLINE_MODE) {
       setIsConnected(false);
       return;

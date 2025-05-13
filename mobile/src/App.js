@@ -5,6 +5,7 @@ import { NetworkProvider } from "./contexts/NetworkContext";
 import { SyncProvider } from "./hooks/useSync";
 import NotesListScreen from "./screens/NotesListScreen";
 import CreateNoteScreen from "./screens/CreateNoteScreen";
+import EditNoteScreen from "./screens/EditNoteScreen";
 import OfflineBanner from "./components/OfflineBanner";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { View, StyleSheet } from "react-native";
@@ -16,6 +17,7 @@ function AppContent() {
     <Stack.Navigator>
       <Stack.Screen name="Notes" component={NotesListScreen} />
       <Stack.Screen name="Create" component={CreateNoteScreen} />
+      <Stack.Screen name="Edit" component={EditNoteScreen} />
     </Stack.Navigator>
   );
 }

@@ -34,7 +34,6 @@ export const getSocketUrl = () => {
   }
 };
 
-// Create a sync context
 const SyncContext = createContext({
   socketConnected: false,
   connectionError: null,
@@ -42,7 +41,6 @@ const SyncContext = createContext({
   getSocketInstance: () => null,
 });
 
-// SyncProvider component
 export function SyncProvider({ children }) {
   const [socketConnected, setSocketConnected] = useState(false);
   const [connectionError, setConnectionError] = useState(null);
@@ -115,6 +113,35 @@ export function SyncProvider({ children }) {
         })();
       });
 
+      // Listen for note updates from other clients
+      globalSocketInstance.on("note:updated", (updatedNote) => {
+        console.log("Received note update from server:", updatedNote.id);
+        (async () => {
+          try {
+            const notes = await getAllNotes();
+            const index = notes.findIndex((n) => n.id === updatedNote.id);
+            if (index !== -1) {
+              if (
+                !notes[index].updatedAt ||
+                updatedNote.updatedAt > notes[index].updatedAt
+              ) {
+                notes[index] = { ...updatedNote, synced: true };
+                await saveNotes(notes);
+                triggerLocalNotification(
+                  "Note Updated",
+                  `A note was updated by another device`
+                );
+              }
+            } else {
+              notes.unshift({ ...updatedNote, synced: true });
+              await saveNotes(notes);
+            }
+          } catch (error) {
+            console.error("Error handling note update:", error);
+          }
+        })();
+      });
+
       globalSocketInstance.on("note:ack", (data) => {
         console.log("Note acknowledgment received:", data);
 
@@ -136,6 +163,60 @@ export function SyncProvider({ children }) {
             }
           } catch (error) {
             console.error("Error updating note status:", error);
+          }
+        })();
+      });
+
+      // Listen for update acknowledgments
+      globalSocketInstance.on("note:update_ack", (data) => {
+        console.log("Note update acknowledgment received:", data);
+
+        (async () => {
+          try {
+            const notes = await getAllNotes();
+            const index = notes.findIndex((n) => n.id === data.id);
+            if (index !== -1) {
+              notes[index].synced = true;
+              notes[index].syncedAt = Date.now();
+              await saveNotes(notes);
+
+              triggerLocalNotification(
+                "Note Update Synced",
+                `Your note changes have been synced`
+              );
+            }
+          } catch (error) {
+            console.error("Error updating note sync status:", error);
+          }
+        })();
+      });
+
+      globalSocketInstance.on("note:delete_ack", (data) => {
+        console.log("Note deletion acknowledgment received:", data);
+
+        triggerLocalNotification(
+          "Note Deleted",
+          "Your note was successfully deleted from the server"
+        );
+      });
+
+      globalSocketInstance.on("note:deleted", (data) => {
+        console.log("Note deleted by another device:", data);
+
+        (async () => {
+          try {
+            const notes = await getAllNotes();
+            const updatedNotes = notes.filter((note) => note.id !== data.id);
+
+            if (notes.length !== updatedNotes.length) {
+              await saveNotes(updatedNotes);
+              triggerLocalNotification(
+                "Note Deleted",
+                "A note was deleted from another device"
+              );
+            }
+          } catch (error) {
+            console.error("Error handling remote note deletion:", error);
           }
         })();
       });
@@ -166,8 +247,14 @@ export function SyncProvider({ children }) {
       if (pendingNotes.length > 0) {
         console.log(`Syncing ${pendingNotes.length} pending notes`);
         for (const note of pendingNotes) {
-          globalSocketInstance.emit("note:create", note);
-          console.log(`Emitted pending note ${note.id} for sync`);
+          // Check if note has an updatedAt field to determine if it's an update or new note
+          if (note.updatedAt) {
+            globalSocketInstance.emit("note:update", note);
+            console.log(`Emitted pending note update ${note.id} for sync`);
+          } else {
+            globalSocketInstance.emit("note:create", note);
+            console.log(`Emitted pending new note ${note.id} for sync`);
+          }
         }
       }
 
@@ -176,8 +263,13 @@ export function SyncProvider({ children }) {
       if (queue.length > 0) {
         console.log(`Syncing ${queue.length} queued notes`);
         for (const note of queue) {
-          console.log("Emitting note from queue:", note.id);
-          globalSocketInstance.emit("note:create", note);
+          if (note.updatedAt) {
+            globalSocketInstance.emit("note:update", note);
+            console.log(`Emitting note update from queue:`, note.id);
+          } else {
+            globalSocketInstance.emit("note:create", note);
+            console.log(`Emitting new note from queue:`, note.id);
+          }
         }
         await clearQueue();
       }

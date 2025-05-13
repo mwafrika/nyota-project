@@ -50,4 +50,33 @@ const batchCreateNotes = async (req, res, next) => {
   }
 };
 
-export { getAll, createNote, batchCreateNotes };
+const updateNote = async (req, res, next) => {
+  try {
+    const { id, text } = req.body;
+    const note = await Note.findByPk(id);
+    if (!note) {
+      return res.status(404).json({ error: "Note not found" });
+    }
+    note.text = text;
+    await note.save();
+    res.json(note);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const deleteNote = async (req, res, next) => {
+  try {
+    const { id } = req.body;
+    const note = await Note.findByPk(id);
+    if (!note) {
+      return res.status(404).json({ error: "Note not found" });
+    }
+    await note.destroy();
+    res.json({ message: "Note deleted successfully" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export { getAll, createNote, batchCreateNotes, updateNote, deleteNote };
