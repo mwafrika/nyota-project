@@ -99,7 +99,6 @@ This project consists of two main components:
 
 5. Follow Expo instructions to run on a device or emulator
 
-
 6. To connect with the Expo Go app on your mobile device:
    - Make sure your mobile device is on the same network as your development machine
    - For Android: Use `exp://<YOUR_LOCAL_IP>:3000` in the Expo Go app
@@ -107,17 +106,17 @@ This project consists of two main components:
 
 7. Screenshots
 
-![alt text](./mobile/assets/splashIcon.jpg)
-![alt text](./mobile/assets/list.jpg)
-
-![alt text](./mobile/assets/create.jpg)
-
-![alt text](./mobile/assets/edit.jpg)
-
-![alt text](./mobile/assets/delete.jpg)
-
-
-
+<p align="center">
+  <img src="./mobile/assets/splashIcon.jpg" alt="Splash Screen" width="40%" />
+  <img src="./mobile/assets/list.jpg" alt="Notes List" width="40%" />
+</p>
+<p align="center">
+  <img src="./mobile/assets/create.jpg" alt="Create Note" width="40%" />
+  <img src="./mobile/assets/edit.jpg" alt="Edit Note" width="40%" />
+</p>
+<p align="center">
+  <img src="./mobile/assets/delete.jpg" alt="Delete Note" width="40%" />
+</p>
 
 ## Project Structure
 
@@ -178,4 +177,4 @@ The app implements a robust offline-first approach using:
 ## Acknowledgments
 
 - Thanks to the React Native and Socket.IO communities
-- Inspired by the need for reliable offline-first applications 
+- Inspired by the need for reliable offline-first applications
