@@ -26,6 +26,8 @@ export default function NotesListScreen({ navigation }) {
   );
 
   const loadNotes = async () => {
+    if (!isMounted.current) return;
+
     try {
       setRefreshing(true);
       const notesData = await getAllNotes();
@@ -38,17 +40,27 @@ export default function NotesListScreen({ navigation }) {
   };
 
   function renderItem({ item }) {
+    const createdDate = new Date(item.createdAt).toLocaleString();
+
     return (
-      <TouchableOpacity style={styles.noteItem}>
-        <Text style={styles.noteText}>{item.text}</Text>
-        <Text
-          style={[
-            styles.syncStatus,
-            { color: item.synced ? "green" : "orange" },
-          ]}
-        >
-          {item.synced ? "Synced" : "Pending"}
-        </Text>
+      <TouchableOpacity style={styles.noteItem} activeOpacity={0.7}>
+        <View style={styles.noteContent}>
+          <Text style={styles.noteText} numberOfLines={3} ellipsizeMode="tail">
+            {item.text}
+          </Text>
+
+          <View style={styles.noteFooter}>
+            <Text style={styles.timestamp}>Created: {createdDate}</Text>
+            <Text
+              style={[
+                styles.syncStatus,
+                { color: item.synced ? "green" : "orange" },
+              ]}
+            >
+              {item.synced ? `Synced` : "Pending"}
+            </Text>
+          </View>
+        </View>
       </TouchableOpacity>
     );
   }
@@ -61,6 +73,7 @@ export default function NotesListScreen({ navigation }) {
         renderItem={renderItem}
         refreshing={refreshing}
         onRefresh={loadNotes}
+        contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
@@ -84,15 +97,39 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f5f5f5",
   },
+  listContent: {
+    padding: 10,
+  },
   noteItem: {
     backgroundColor: "#fff",
+    borderRadius: 8,
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    marginBottom: 12,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.5,
+  },
+  noteContent: {
+    flex: 1,
   },
   noteText: {
     fontSize: 16,
-    marginBottom: 8,
+    marginBottom: 12,
+    lineHeight: 22,
+  },
+  noteFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
+    paddingTop: 8,
+  },
+  timestamp: {
+    fontSize: 12,
+    color: "#666",
   },
   syncStatus: {
     fontSize: 12,
@@ -123,8 +160,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
-    height: 200,
+    padding: 40,
+    height: 300,
   },
   emptyText: {
     fontSize: 16,

@@ -83,8 +83,11 @@ export async function markNoteSynced(noteId) {
 
     if (index !== -1) {
       notes[index].synced = true;
+      notes[index].syncedAt = Date.now();
       await saveNotes(notes);
-      console.log(`Note ${noteId} marked as synced`);
+      console.log(
+        `Note ${noteId} marked as synced at ${new Date().toISOString()}`
+      );
       return true;
     }
 

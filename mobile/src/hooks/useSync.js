@@ -118,15 +118,21 @@ export function SyncProvider({ children }) {
       globalSocketInstance.on("note:ack", (data) => {
         console.log("Note acknowledgment received:", data);
 
-        // Update note sync status
         (async () => {
           try {
             const notes = await getAllNotes();
             const index = notes.findIndex((n) => n.id === data.id);
             if (index !== -1) {
               notes[index].synced = true;
+              notes[index].syncedAt = Date.now();
               await saveNotes(notes);
-              console.log(`Note ${data.id} marked as synced`);
+
+              triggerLocalNotification(
+                "Note Synced",
+                `"${notes[index].text.substring(0, 20)}${
+                  notes[index].text.length > 20 ? "..." : ""
+                }" synced successfully`
+              );
             }
           } catch (error) {
             console.error("Error updating note status:", error);
