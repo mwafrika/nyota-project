@@ -4,16 +4,15 @@ import { v4 as uuidv4 } from "../utils/idGenerator";
 import { getAllNotes, saveNotes, enqueueNote } from "../storage/notesStore";
 import { NetworkContext } from "../contexts/NetworkContext";
 import { useSyncStatus } from "../hooks/useSync";
-import io from "socket.io-client";
-import { getSocketUrl } from "../hooks/useSync";
 
 export default function CreateNoteScreen({ navigation }) {
   const [text, setText] = useState("");
   const { isConnected } = useContext(NetworkContext);
-  const { socketConnected } = useSyncStatus();
+  const { socketConnected, getSocketInstance } = useSyncStatus();
 
   async function save() {
     try {
+      // Create new note
       const newNote = {
         id: uuidv4(),
         text,
@@ -21,34 +20,29 @@ export default function CreateNoteScreen({ navigation }) {
         createdAt: Date.now(),
       };
 
-      // Save locally first
       const notes = await getAllNotes();
       notes.unshift(newNote);
       await saveNotes(notes);
+      console.log("Note saved locally:", newNote.id);
 
-      // If connected to server, emit directly
       if (isConnected && socketConnected) {
-        try {
-          const socket = io(getSocketUrl(), {
-            transports: ["websocket", "polling"],
-          });
-
-          // Wait for connection
-          socket.on("connect", () => {
-            socket.emit("note:create", newNote);
-            console.log("Emitted note:create directly:", newNote.id);
-
-            socket.disconnect();
-          });
-        } catch (error) {
-          console.error("Error emitting note:", error);
+        const socket = getSocketInstance();
+        if (socket && socket.connected) {
+          socket.emit("note:create", newNote);
+          console.log("Note emitted for immediate sync:", newNote.id);
+        } else {
           await enqueueNote(newNote);
+          console.log(
+            "Socket unavailable, added note to sync queue:",
+            newNote.id
+          );
         }
       } else {
         await enqueueNote(newNote);
-        console.log("Added note to sync queue:", newNote.id);
+        console.log("Offline - added note to sync queue:", newNote.id);
       }
 
+      // Navigate back to the notes list
       navigation.goBack();
     } catch (error) {
       console.error("Error saving note:", error);
